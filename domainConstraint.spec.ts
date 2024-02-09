@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
-const { checkTitle, checkSaveButtonDisabled, checkAndCloseToast, deleteConstraint } = require('./utils/uniqueFunction');
-const { checkWithDomainName, checkWithEmptyDomian, checkWithDomainNameDes, checkWithDomainDes, checkWithDomainNameDesType, createDomainConstraint, findDomainConstraint, findEditedDomainConstraint, editDomainDescription } = require('./utils/domainFunctions');
+const { checkTitle, checkAndCloseToast, deleteConstraint } = require('./utils/uniqueFunction');
+const { checkConstraint, createDomainConstraint, findDomainConstraint, findEditedDomainConstraint, editDomainDescription } = require('./utils/domainFunctions');
 
 import { login, host } from '../shared';
 
@@ -28,8 +28,6 @@ test.describe('Create Domain Constraint', () => {
             await deleteConstraint(expect, page, constraint);
             await checkAndCloseToast(expect, page, constraint);
         }
-
-
     });
 
     const constraint = `test-${+Date.now()}`;
@@ -38,28 +36,21 @@ test.describe('Create Domain Constraint', () => {
             //Check with title name 
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
-        test('Check with Empty Domain', async () => {
-            await checkWithEmptyDomian(expect, page, constraint);
+        test('Check with Empty field and  Domain type', async () => {
+            await checkConstraint(expect, page, "", "", "Domain")
+
         });
 
-
-        test('Check with only domain name ', async () => {
-            await checkWithDomainName(expect, page, constraint);
+        test('Check with only constraint name and domain type ', async () => {
+            await checkConstraint(expect, page, constraint, "", "Domain")
         });
-        test('Check with only domain description ', async () => {
-            await checkWithDomainDes(expect, page, constraint);
-        });
-
-        test('Check with only domain name and description ', async () => {
-            await checkWithDomainNameDes(expect, page, constraint);
-        });
-        test('Check with only domain name, description and type ', async () => {
-            await checkWithDomainNameDesType(expect, page, constraint);
+        test('Check with only description and domain type ', async () => {
+            await checkConstraint(expect, page, "", "Test Contraint", "Domain")
         });
 
-
-
-
+        test('Check with name description and constraint domain type ', async () => {
+            await checkConstraint(expect, page, constraint, "Test Contraint", "Domain")
+        });
     });
 
     test.describe('Create new Constraints', () => {
@@ -126,11 +117,7 @@ test.describe('Create Domain Constraint', () => {
             await checkAndCloseToast(expect, page, constraint);
         });
 
-
-
-
     });
 
 
 });
-
