@@ -1,8 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 const { checkTitle, checkAndCloseToast, deleteConstraint } = require('./utils/uniqueFunction');
-const { findRangeConstraint, createRangeConstraint, findEditedRangeConstraint, editRangeDescription } = require('./utils/rangeFunctions');
-
+const { findRangeConstraint, checkRangeConstraint, createRangeConstraint, findEditedRangeConstraint, editRangeDescription } = require('./utils/rangeFunctions');
 import { login, host } from '../shared';
 
 // Annotate entire file as serial.
@@ -20,51 +19,77 @@ test.describe('Range Constraint', () => {
     test.afterAll(async () => {
         await page.close();
     });
-    test.afterEach(async ({ page }) => {
-        if (deleteConstraint === false) {
-            // Delete the constraint
-            await deleteConstraint(expect, page, constraint);
-            await checkAndCloseToast(expect, page, constraint);
-        }
+    // test.afterEach(async ({ page }) => {
+    //     if (deleteConstraint === false) {
+    //         // Delete the constraint
+    //         await deleteConstraint(expect, page, constraint);
+    //         await checkAndCloseToast(expect, page, constraint);
+    //     }
+    // });
+    test.describe('Iterations for fields validation', () => {
+        const constraint = `test_iterate-${+Date.now()}`;
+        test('Check title ', async () => {
+            //Check with title name
+            await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
+        });
+        test('Check with Empty field and Range type', async () => {
+            await checkRangeConstraint(page, "", "", "Range", "", "")
+        });
+
+        test('Check with only constraint name and Range type ', async () => {
+            await checkRangeConstraint(page, constraint, "", "Range", "", "")
+        });
+        test('Check with only description and Range type ', async () => {
+            await checkRangeConstraint(page, "", "Test Contraint", "Range", "", "")
+        });
+
+        test('Check with console input and constraint Range type ', async () => {
+            await checkRangeConstraint(page, "", "", "Range", "1", "5")
+        });
+
+        test('Check with name description and constraint Range type ', async () => {
+            await checkRangeConstraint(page, constraint, "Test Contraint", "Range", "", "")
+        });
+
     });
 
-
-    const constraint = `test-${+Date.now()}`;
     test.describe('Create Range Constraint', () => {
+        const constraint = `test_new-${+Date.now()}`;
+
         test('should match the expected title', async () => {
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
 
-
-        test('Create Domain Constraint', async () => {
-            await createRangeConstraint(expect, page, constraint);
+        test('Create Range Constraint', async () => {
+            await createRangeConstraint(page, constraint);
         });
         test('Find the new constraint in the table', async () => {
-            await findRangeConstraint(expect, page, constraint);
+            await findRangeConstraint(page, constraint);
         });
 
         test('Delete new constraint', async () => {
-            await deleteConstraint(expect, page, constraint);
+            await deleteConstraint(page, constraint);
         });
 
         test('Check toast', async () => {
-            await checkAndCloseToast(expect, page, constraint);
+            await checkAndCloseToast(page, constraint);
         });
 
     });
 
 
     test.describe('Edit new constraint', () => {
+        const constraint = `test_edit-${+Date.now()}`;
         test('should match the expected title', async () => {
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
 
         test('Create Range Constraint', async () => {
-            await createRangeConstraint(expect, page, constraint);
+            await createRangeConstraint(page, constraint);
         });
 
         test('Find the new constraint in the table', async () => {
-            await findRangeConstraint(expect, page, constraint);
+            await findRangeConstraint(page, constraint);
         });
 
         // Check the title
@@ -77,20 +102,19 @@ test.describe('Range Constraint', () => {
             await expect(title).toHaveText(constraint);
         });
         test('Edit description pattern', async () => {
-            await editRangeDescription(expect, page, constraint);
+            await editRangeDescription(page, constraint);
         });
 
         test('Find the edited constraint in the table', async () => {
-            await findEditedRangeConstraint(expect, page, constraint);
+            await findEditedRangeConstraint(page, constraint);
         });
         test('Delete new constraint', async () => {
-            await deleteConstraint(expect, page, constraint);
+            await deleteConstraint(page, constraint);
         });
 
         test('Check toast', async () => {
-            await checkAndCloseToast(expect, page, constraint);
+            await checkAndCloseToast(page, constraint);
         });
     });
 });
-
 
