@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 const { checkTitle, checkAndCloseToast, deleteConstraint } = require('./utils/uniqueFunction');
-const { checkConstraint, createDomainConstraint, findDomainConstraint, findEditedDomainConstraint, editDomainDescription } = require('./utils/domainFunctions');
+const { checkDomainConstraint, createDomainConstraint, findDomainConstraint, findEditedDomainConstraint, editDomainDescription } = require('./utils/domainFunctions');
 
 import { login, host } from '../shared';
 
@@ -22,75 +22,79 @@ test.describe('Create Domain Constraint', () => {
         await page.close();
     });
 
-    test.afterEach(async ({ page }) => {
-        if (deleteConstraint === false) {
-            // Delete the constraint
-            await deleteConstraint(expect, page, constraint);
-            await checkAndCloseToast(expect, page, constraint);
-        }
-    });
+    // test.afterEach(async ({ page }) => {
+    //    if (deleteConstraint === false) {
+    // Delete the constraint
+    //        await deleteConstraint(page, constraint);
+    //        await checkAndCloseToast( page, constraint);
+    //    }
+    //});
 
-    const constraint = `test-${+Date.now()}`;
     test.describe('Iterations for fields validation', () => {
+        const constraint = `test_iterate-${+Date.now()}`;
         test('Check title ', async () => {
-            //Check with title name 
+            //Check with title name
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
-        test('Check with Empty field and  Domain type', async () => {
-            await checkConstraint(expect, page, "", "", "Domain")
-
+        test('Check with Empty field and Domain type', async () => {
+            await checkDomainConstraint(page, "", "", "Domain", "")
         });
 
         test('Check with only constraint name and domain type ', async () => {
-            await checkConstraint(expect, page, constraint, "", "Domain")
+            await checkDomainConstraint(page, constraint, "", "Domain", "")
         });
         test('Check with only description and domain type ', async () => {
-            await checkConstraint(expect, page, "", "Test Contraint", "Domain")
+            await checkDomainConstraint(page, "", "Test Contraint", "Domain", "")
+        });
+
+        test('Check with console input and constraint domain type ', async () => {
+            await checkDomainConstraint(page, "", "", "Domain", "Hello Testing Domain")
         });
 
         test('Check with name description and constraint domain type ', async () => {
-            await checkConstraint(expect, page, constraint, "Test Contraint", "Domain")
+            await checkDomainConstraint(page, constraint, "Test Contraint", "Domain", "")
         });
+
     });
 
     test.describe('Create new Constraints', () => {
-
+        const constraint = `test_new-${+Date.now()}`;
         test('should match the expected title', async () => {
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
 
         test('Create Domain Constraint', async () => {
-            await createDomainConstraint(expect, page, constraint);
+            await createDomainConstraint(page, constraint);
         });
 
         test('Find the new constraint in the table', async () => {
-            await findDomainConstraint(expect, page, constraint);
+            await findDomainConstraint(page, constraint);
         });
 
         test('Delete new constraint', async () => {
-            await deleteConstraint(expect, page, constraint);
+            await deleteConstraint(page, constraint);
         });
 
         test('Check toast', async () => {
-            await checkAndCloseToast(expect, page, constraint);
+            await checkAndCloseToast(page, constraint);
         });
-
 
     });
 
     test.describe('Edit new Domain constraint', () => {
+        const constraint = `test_edit-${+Date.now()}`;
         test('should match the expected title', async () => {
             await checkTitle(page, 'Constraints', '.w-full >> .table.table-compact', 'h1.h1');
         });
 
         test('Create Domain Constraint', async () => {
-            await createDomainConstraint(expect, page, constraint);
+            await createDomainConstraint(page, constraint);
         });
 
         test('Find the new constraint in the table', async () => {
-            await findDomainConstraint(expect, page, constraint);
-        });
+            await findDomainConstraint(page, constraint);
 
+        });
 
         // Check the title
         test('Title', async () => {
@@ -102,22 +106,21 @@ test.describe('Create Domain Constraint', () => {
             await expect(title).toHaveText(constraint);
         });
         test('Edit description domain', async () => {
-            await editDomainDescription(expect, page, constraint);
+            test.slow();
+            await editDomainDescription(page, constraint);
         });
 
         test('Find the edited constraint in the table', async () => {
-            await findEditedDomainConstraint(expect, page, constraint);
+            await findEditedDomainConstraint(page, constraint);
         });
 
         test('Delete new constraint', async () => {
-            await deleteConstraint(expect, page, constraint);
+            await deleteConstraint(page, constraint);
         });
 
         test('Check toast', async () => {
-            await checkAndCloseToast(expect, page, constraint);
+            await checkAndCloseToast(page, constraint);
         });
 
     });
-
-
 });
