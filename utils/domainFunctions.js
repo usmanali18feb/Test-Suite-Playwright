@@ -1,3 +1,5 @@
+import { expect } from "@playwright/test";
+
 class ConstraintHandler {
     constructor() {
         this._constraintDelete = false;
@@ -16,9 +18,9 @@ class ConstraintHandler {
 // Usage
 const handler = new ConstraintHandler();
 
-async function checkConstraint(expect, page, constraint, hasDescription, hasDomainType) {
+async function checkDomainConstraint(page, constraint, hasDescription, hasDomainType, hasConsoleInput) {
     await page.waitForLoadState('load');
-   
+
     await page.locator('#create').click();
     await page.waitForTimeout(1000);
 
@@ -34,6 +36,14 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
     if (hasDomainType) {
         await page.selectOption('#constraintTypes', 'Domain');
     }
+    // Add 'Console input' if hasConsoleinput is true
+    if (hasConsoleInput) {
+        await page.waitForTimeout(500);
+        // Type the text
+        await page.keyboard.type('Hello Testing Domain');
+        // Wait for 500 milliseconds
+        await page.waitForTimeout(500);
+    }
 
     // Handling different conditions based on parameters
     if (!constraint && !hasDescription && hasDomainType) {
@@ -42,8 +52,7 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
         // Check if the save button is disabled and reload the page
         const saveButton = page.locator('button#save');
         await expect(saveButton).toBeDisabled();
-        await page.reload();
-        console.log("I am only with domain type");
+        await page.reload()
         // Set the value
         handler.constraintDelete = true;
     }
@@ -54,7 +63,6 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
         const saveButton = page.locator('button#save');
         await expect(saveButton).toBeDisabled();
         await page.reload();
-        console.log("I am with name and domain type");
         // Set the value
         handler.constraintDelete = true;
     }
@@ -65,7 +73,6 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
         const saveButton = page.locator('button#save');
         await expect(saveButton).toBeDisabled();
         await page.reload();
-        console.log("I am with description and domain type");
         // Set the value
         handler.constraintDelete = true;
     }
@@ -75,7 +82,6 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
         // Click on save button and wait for toast message
         await page.click('#save');
         // Set the value
-        console.log("I am with name, description and contraint type domain");
         await page.waitForSelector('.toast[data-testid=toast] .text-base');
         const toast = await page.locator('.toast[data-testid=toast]');
         let expectedMessage = `Can't save Constraint "${constraint}"`;
@@ -91,9 +97,19 @@ async function checkConstraint(expect, page, constraint, hasDescription, hasDoma
         handler.constraintDelete = true;
         await page.reload();
     }
+    else if (!constraint && !hasDescription && hasDomainType && hasConsoleInput) {
+        await page.waitForLoadState('load');
+        await page.waitForTimeout(1500);
+        // Check if the save button is disabled and reload the page
+        const saveButton = page.locator('button#save');
+        await expect(saveButton).toBeDisabled();
+        await page.reload();
+        // Set the value
+        handler.constraintDelete = true;
+    }
 }
 
-async function createDomainConstraint(expect, page, constraint) {
+async function createDomainConstraint(page, constraint) {
 
     await page.waitForLoadState('load');
     // Wait for 500 milliseconds
@@ -138,7 +154,7 @@ async function createDomainConstraint(expect, page, constraint) {
     await toast.locator('button').click();
 }
 
-async function findDomainConstraint(expect, page, constraint) {
+async function findDomainConstraint(page, constraint) {
     // Search for the constraint
     await page.locator('#constraints-search').fill(constraint);
 
@@ -160,13 +176,9 @@ async function findDomainConstraint(expect, page, constraint) {
     );
 }
 
-async function editDomainDescription(expect, page, constraint) {
-    // Fill in the description textarea
-    await page.locator('textarea[id=description]').fill('Test constraint edited');
-
-    // Fill in the name input
-    await page.locator('input[id=name]').fill(constraint);
-
+async function editDomainDescription(page, constraint) {
+    await page.waitForLoadState('load');
+    await page.waitForTimeout(1000);
     // Fill in the edited description
     await page.locator('textarea[id=description]').fill('Test edited domain constraint');
 
@@ -177,7 +189,7 @@ async function editDomainDescription(expect, page, constraint) {
     await page.keyboard.type(' Edited');
 
     // Wait for 500 milliseconds
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Click on save button
     await page.locator('button[id=save]').click();
@@ -194,7 +206,7 @@ async function editDomainDescription(expect, page, constraint) {
 }
 
 
-async function findEditedDomainConstraint(expect, page, constraint) {
+async function findEditedDomainConstraint(page, constraint) {
 
     // Search for the constraint
     await page.locator('#constraints-search').fill(constraint);
@@ -215,12 +227,9 @@ async function findEditedDomainConstraint(expect, page, constraint) {
 
 
 module.exports = {
-
-
     createDomainConstraint,
     findDomainConstraint,
-    checkConstraint,
+    checkDomainConstraint,
     editDomainDescription,
     findEditedDomainConstraint
 };
-
